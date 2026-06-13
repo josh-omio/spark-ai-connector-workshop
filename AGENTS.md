@@ -44,8 +44,8 @@ Participant ports on the VM are derived from the participant number:
 ## What To Build
 
 Build a Streamable HTTP MCP server that exposes curated tools over the workshop
-plugin marketplace. The plugin marketplace is the external system. The MCP server
-is the menu of tools the AI can use.
+plugin marketplace. The plugin marketplace is a shared external system. The MCP
+server is the menu of tools the AI can use.
 
 The server must:
 
@@ -67,6 +67,9 @@ the plugin marketplace.
   schemas, and examples.
 - The plugin marketplace APIs are the backend ingredients that MCP tools can
   call. Do not describe those marketplace API endpoints as "My MCP Tools".
+- Explain the page as a readable view of the MCP tools the participant is
+  building, so non-technical readers can understand what changed without reading
+  code.
 
 ## Common Commands
 

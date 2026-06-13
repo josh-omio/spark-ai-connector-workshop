@@ -47,8 +47,12 @@ The My MCP Tools page shows the tools your MCP server currently gives to the AI.
 
 This page is not the plugin marketplace. Think of it this way:
 
-- the plugin marketplace is the system your tools can talk to
-- My MCP Tools is the menu of tools your AI can use
+- the plugin marketplace is the shared external system your tools can talk to
+- My MCP Tools is a friendly view of the tools you are building for the AI to use
+
+For this part of the workshop, pretend you are an engineer building MCP tools for
+other people to use. The My MCP Tools page shows what you have built in a more
+readable format, so you can understand the idea without reading code.
 
 After deployment, Codex will show you a local link like this:
 
