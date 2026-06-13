@@ -102,7 +102,7 @@ gcloud compute ssh spark-workshop-ai-connector \
   --command='sudo docker exec spark-PARTICIPANT_ID tail -f /tmp/workshop-mcp.log'
 ```
 
-Open an SSH tunnel from your MacBook to your participant MCP endpoint:
+Open an SSH tunnel from the participant's computer to their MCP endpoint:
 
 ```bash
 gcloud compute ssh spark-workshop-ai-connector \

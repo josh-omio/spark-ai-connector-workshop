@@ -60,7 +60,9 @@ After deployment, Codex will show you a local link like this:
 http://127.0.0.1:3101/
 ```
 
-The number may be different depending on your participant number.
+Your participant number gives you your own local My MCP Tools link. Participant
+1 uses `http://127.0.0.1:3101/`, participant 2 uses
+`http://127.0.0.1:3102/`, and so on.
 
 ## If Something Gets Stuck
 
