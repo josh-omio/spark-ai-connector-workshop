@@ -52,7 +52,7 @@ tools_url="http://127.0.0.1:${local_mcp_port}/"
 mcp_url="http://127.0.0.1:${local_mcp_port}/mcp"
 health_url="http://127.0.0.1:${local_mcp_port}/_system/health"
 
-gcloud_args=(compute ssh "${vm}" --zone="${zone}")
+gcloud_args=(compute ssh "${vm}" --zone="${zone}" --tunnel-through-iap)
 if [[ -n "${project}" ]]; then
   gcloud_args+=(--project="${project}")
 fi
@@ -134,7 +134,7 @@ Codex MCP URL:
 
 If the tunnel did not start, open a separate terminal and keep this running:
 
-  gcloud compute ssh ${vm} --zone=${zone}${project:+ --project=${project}} -- -N -L ${local_mcp_port}:127.0.0.1:${local_mcp_port}
+  gcloud compute ssh ${vm} --zone=${zone}${project:+ --project=${project}} --tunnel-through-iap -- -N -L ${local_mcp_port}:127.0.0.1:${local_mcp_port}
 
 To deploy without starting the tunnel, run:
 
@@ -142,5 +142,5 @@ To deploy without starting the tunnel, run:
 
 Remote logs:
 
-  gcloud compute ssh ${vm} --zone=${zone}${project:+ --project=${project}} --command='sudo docker exec spark-${participant_id} tail -f /tmp/workshop-mcp.log'
+  gcloud compute ssh ${vm} --zone=${zone}${project:+ --project=${project}} --tunnel-through-iap --command='sudo docker exec spark-${participant_id} tail -f /tmp/workshop-mcp.log'
 EOF

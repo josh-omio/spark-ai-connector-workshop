@@ -99,6 +99,7 @@ Tail the remote MCP logs:
 gcloud compute ssh spark-workshop-ai-connector \
   --zone=europe-west1-b \
   --project=vertex-playground-429621 \
+  --tunnel-through-iap \
   --command='sudo docker exec spark-PARTICIPANT_ID tail -f /tmp/workshop-mcp.log'
 ```
 
@@ -108,6 +109,7 @@ Open an SSH tunnel from the participant's computer to their MCP endpoint:
 gcloud compute ssh spark-workshop-ai-connector \
   --zone=europe-west1-b \
   --project=vertex-playground-429621 \
+  --tunnel-through-iap \
   -- -N -L LOCAL_MCP_PORT:127.0.0.1:LOCAL_MCP_PORT
 ```
 
