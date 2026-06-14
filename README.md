@@ -64,6 +64,12 @@ Your participant number gives you your own local My MCP Tools link. Participant
 1 uses `http://127.0.0.1:3101/`, participant 2 uses
 `http://127.0.0.1:3102/`, and so on.
 
+## For The Engineer Section
+
+When your MCP server is deployed, it also has access to a participant-specific
+Postgres database through `DATABASE_URL`. Codex will use this when you ask it to
+add SSO, sessions, tool usage tables, or other server-side state.
+
 ## If Something Gets Stuck
 
 Ask Codex what happened and show the facilitator the error message.

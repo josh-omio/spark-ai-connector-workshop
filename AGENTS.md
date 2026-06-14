@@ -71,6 +71,18 @@ the plugin marketplace.
   building, so non-technical readers can understand what changed without reading
   code.
 
+## Participant Database
+
+Inside the deployed participant container, `DATABASE_URL` points to that
+participant's own Postgres database on the shared workshop VM.
+
+- Use `process.env.DATABASE_URL` when adding SSO, sessions, tool usage tables,
+  or other participant-owned state.
+- Do not hardcode database credentials in source files.
+- Treat the database as workshop state, not production data.
+- Each participant gets a separate database named after their participant ID,
+  such as `mcp_p01` for `p01`.
+
 ## Common Commands
 
 In the commands below, replace `PARTICIPANT_ID` and `LOCAL_MCP_PORT` before
