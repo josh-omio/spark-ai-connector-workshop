@@ -78,10 +78,13 @@ participant's own Postgres database on the shared workshop VM.
 
 - Use `process.env.DATABASE_URL` when adding SSO, sessions, tool usage tables,
   or other participant-owned state.
+- Use `db.js` for Postgres access instead of creating a new connection pattern.
 - Do not hardcode database credentials in source files.
 - Treat the database as workshop state, not production data.
 - Each participant gets a separate database named after their participant ID,
   such as `mcp_p01` for `p01`.
+- Use `npm run db:check` after deployment to verify the participant database can
+  create a table, write a row, and read it back.
 
 ## Common Commands
 

@@ -28,6 +28,8 @@ You do not need to understand every file in this repo. Codex will read
 - `README.md`: the file you are reading now
 - `AGENTS.md`: instructions for Codex
 - `server.js`: the starter MCP server and My MCP Tools page
+- `db.js`: a small Postgres helper for the engineer section
+- `scripts/db-check.js`: a safe database read/write check
 - `deploy.sh`: the deploy helper Codex will use
 - `package.json`: the small Node.js project file
 
@@ -69,6 +71,15 @@ Your participant number gives you your own local My MCP Tools link. Participant
 When your MCP server is deployed, it also has access to a participant-specific
 Postgres database through `DATABASE_URL`. Codex will use this when you ask it to
 add SSO, sessions, tool usage tables, or other server-side state.
+
+Engineers can ask Codex to run this after deployment:
+
+```bash
+npm run db:check
+```
+
+That command uses `db.js` to create a tiny check table in your own participant
+database, then reads it back.
 
 ## If Something Gets Stuck
 
