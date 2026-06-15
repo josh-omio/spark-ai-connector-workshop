@@ -56,6 +56,12 @@ For this part of the workshop, pretend you are an engineer building MCP tools fo
 other people to use. The My MCP Tools page shows what you have built in a more
 readable format, so you can understand the idea without reading code.
 
+The shared plugin marketplace is here:
+
+```text
+http://34.38.34.157/
+```
+
 When deployed, your MCP server can call the shared plugin marketplace API through
 `REGISTRY_API_URL`.
 

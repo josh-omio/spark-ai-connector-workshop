@@ -47,6 +47,12 @@ Build a Streamable HTTP MCP server that exposes curated tools over the workshop
 plugin marketplace. The plugin marketplace is a shared external system. The MCP
 server is the menu of tools the AI can use.
 
+Shared plugin marketplace UI:
+
+```text
+http://34.38.34.157/
+```
+
 The server must:
 
 - listen on port `3000`;
