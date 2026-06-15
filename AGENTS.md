@@ -55,6 +55,10 @@ The server must:
 - use the marketplace APIs as backend ingredients, not expose every API endpoint
   one-to-one as a tool unless that is intentionally part of the exercise.
 
+Inside the deployed participant container, `REGISTRY_API_URL` points to the
+shared plugin marketplace API. Use `process.env.REGISTRY_API_URL` when MCP tools
+need to search, inspect, recommend, compare, star, or submit marketplace data.
+
 ## My MCP Tools Page
 
 The My MCP Tools page is part of the participant MCP server. It is not part of
