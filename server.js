@@ -541,8 +541,11 @@ function renderToolsPage() {
       elements.checkedAt.textContent = data.checkedAt
         ? new Date(data.checkedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : "-";
-      const proxiedParticipant = window.location.pathname.match(/^\/tools\/(p[0-9]{2})(?:\/|$)/);
-      elements.endpoint.textContent = proxiedParticipant ? \`/mcp/\${proxiedParticipant[1]}\` : (data.endpoint || "/mcp");
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const proxiedParticipant = pathParts[0] === "tools" && isParticipantId(pathParts[1])
+        ? pathParts[1]
+        : "";
+      elements.endpoint.textContent = proxiedParticipant ? \`/mcp/\${proxiedParticipant}\` : (data.endpoint || "/mcp");
       elements.rawJson.textContent = JSON.stringify(data, null, 2);
       elements.empty.hidden = tools.length > 0;
       elements.tools.innerHTML = tools.map(renderToolCard).join("");
@@ -579,6 +582,13 @@ function renderToolsPage() {
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
+    }
+
+    function isParticipantId(value) {
+      return typeof value === "string"
+        && value.length === 3
+        && value[0] === "p"
+        && Number.isInteger(Number(value.slice(1)));
     }
   </script>
 </body>
