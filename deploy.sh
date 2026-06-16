@@ -9,7 +9,7 @@ Uploads this MCP server to the workshop deploy gateway and restarts the
 participant's remote MCP server.
 
 Environment overrides:
-  WORKSHOP_DEPLOY_GATEWAY_URL=http://34.38.34.157/_gateway/deploy
+  WORKSHOP_DEPLOY_GATEWAY_URL=https://spark-ai-connector-workshop.qa.omio.tech/_gateway/deploy
   WORKSHOP_DEPLOY_TOKEN=...
   WORKSHOP_TOKEN_FILE=.workshop-token
 EOF
@@ -33,7 +33,7 @@ if [[ ! -d "${source_dir}" ]]; then
   exit 1
 fi
 
-gateway_url="${WORKSHOP_DEPLOY_GATEWAY_URL:-http://34.38.34.157/_gateway/deploy}"
+gateway_url="${WORKSHOP_DEPLOY_GATEWAY_URL:-https://spark-ai-connector-workshop.qa.omio.tech/_gateway/deploy}"
 token_file="${WORKSHOP_TOKEN_FILE:-.workshop-token}"
 token="${WORKSHOP_DEPLOY_TOKEN:-}"
 

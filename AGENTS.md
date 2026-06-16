@@ -44,10 +44,10 @@ gateway URLs instead of raw ports:
 
 Default public workshop URLs:
 
-- Shared plugin marketplace: `http://34.38.34.157/`
-- Deploy gateway: `http://34.38.34.157/_gateway/deploy`
-- My MCP Tools: `http://34.38.34.157/tools/PARTICIPANT_ID/`
-- Codex MCP URL: `http://34.38.34.157/mcp/PARTICIPANT_ID`
+- Shared plugin marketplace: `https://spark-ai-connector-workshop.qa.omio.tech/`
+- Deploy gateway: `https://spark-ai-connector-workshop.qa.omio.tech/_gateway/deploy`
+- My MCP Tools: `https://spark-ai-connector-workshop.qa.omio.tech/tools/PARTICIPANT_ID/`
+- Codex MCP URL: `https://spark-ai-connector-workshop.qa.omio.tech/mcp/PARTICIPANT_ID`
 
 ## What To Build
 
@@ -58,7 +58,7 @@ server is the menu of tools the AI can use.
 Shared plugin marketplace UI:
 
 ```text
-http://34.38.34.157/
+https://spark-ai-connector-workshop.qa.omio.tech/
 ```
 
 The server must:
@@ -85,9 +85,9 @@ the plugin marketplace.
 - `http://localhost:3000/` is a browser page that shows the tools currently
   exposed by that same MCP server.
 - after deployment, the public My MCP Tools URL is
-  `http://34.38.34.157/tools/PARTICIPANT_ID/`.
+  `https://spark-ai-connector-workshop.qa.omio.tech/tools/PARTICIPANT_ID/`.
 - after deployment, the public MCP URL is
-  `http://34.38.34.157/mcp/PARTICIPANT_ID`.
+  `https://spark-ai-connector-workshop.qa.omio.tech/mcp/PARTICIPANT_ID`.
 - The page should display the MCP tool menu: tool names, descriptions, input
   schemas, and examples.
 - The plugin marketplace APIs are the backend ingredients that MCP tools can
@@ -146,8 +146,8 @@ deploy.
 
 After deployment, use:
 
-- My MCP Tools: `http://34.38.34.157/tools/PARTICIPANT_ID/`
-- Codex MCP URL: `http://34.38.34.157/mcp/PARTICIPANT_ID`
+- My MCP Tools: `https://spark-ai-connector-workshop.qa.omio.tech/tools/PARTICIPANT_ID/`
+- Codex MCP URL: `https://spark-ai-connector-workshop.qa.omio.tech/mcp/PARTICIPANT_ID`
 
 ## Codex Working Rules
 

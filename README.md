@@ -58,7 +58,7 @@ readable format, so you can understand the idea without reading code.
 The shared plugin marketplace is here:
 
 ```text
-http://34.38.34.157/
+https://spark-ai-connector-workshop.qa.omio.tech/
 ```
 
 When deployed, your MCP server can call the shared plugin marketplace API through
@@ -67,12 +67,12 @@ When deployed, your MCP server can call the shared plugin marketplace API throug
 After deployment, Codex will show you a link like this:
 
 ```text
-http://34.38.34.157/tools/p01/
+https://spark-ai-connector-workshop.qa.omio.tech/tools/p01/
 ```
 
 Your participant number gives you your own My MCP Tools link. Participant 1 uses
-`http://34.38.34.157/tools/p01/`, participant 2 uses
-`http://34.38.34.157/tools/p02/`, and so on.
+`https://spark-ai-connector-workshop.qa.omio.tech/tools/p01/`, participant 2 uses
+`https://spark-ai-connector-workshop.qa.omio.tech/tools/p02/`, and so on.
 
 Codex will deploy through the workshop deploy gateway. You do not need to set up
 Google Cloud or SSH for the normal workshop flow. If Codex asks for a workshop
