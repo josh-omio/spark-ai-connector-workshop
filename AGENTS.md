@@ -13,9 +13,9 @@ PARTICIPANT_ID=pXX
 
 Replace `pXX` with your assigned ID, such as `p01`, `p02`, or `p20`.
 
-`PARTICIPANT_ID` must be filled in before Codex deploys, opens tunnels, checks
-logs, or interacts with the VM. If `PARTICIPANT_ID` is still `pXX`, stop and
-prompt the user for their participant number before proceeding. Never guess a participant ID.
+`PARTICIPANT_ID` must be filled in before Codex deploys or checks the deployed
+MCP server. If `PARTICIPANT_ID` is still `pXX`, stop and prompt the user for
+their participant number before proceeding. Never guess a participant ID.
 
 If the user gives a participant number like "1" or "participant 1", convert it
 to the matching participant ID such as `p01`, update the `PARTICIPANT_ID=...`
@@ -33,13 +33,21 @@ line in this file, and then continue.
 - MCP endpoint inside the container: `http://localhost:3000/mcp`
 - My MCP Tools viewer inside the container: `http://localhost:3000/`
 
-Participant ports on the VM are derived from the participant number:
+Participant ports exist inside the VM, but participants should use the public
+gateway URLs instead of raw ports:
 
 - MCP port formula: `3100 + participant number`
 - `p01` MCP port: `3101`
 - `p02` MCP port: `3102`
 - `p20` MCP port: `3120`
 - Preview ports follow the same pattern with `5101` through `5120`
+
+Default public workshop URLs:
+
+- Shared plugin marketplace: `http://34.38.34.157/`
+- Deploy gateway: `http://34.38.34.157/_gateway/deploy`
+- My MCP Tools: `http://34.38.34.157/tools/PARTICIPANT_ID/`
+- Codex MCP URL: `http://34.38.34.157/mcp/PARTICIPANT_ID`
 
 ## What To Build
 
@@ -63,7 +71,10 @@ The server must:
 
 Inside the deployed participant container, `REGISTRY_API_URL` points to the
 shared plugin marketplace API. Use `process.env.REGISTRY_API_URL` when MCP tools
-need to search, inspect, recommend, compare, star, or submit marketplace data.
+need marketplace facts such as plugins, skills, usage, stars, owners, review
+status, submissions, feedback, or plugin ideas. For this workshop, marketplace
+API endpoints provide facts and MCP tools provide opinions such as
+recommendations, comparisons, assessments, summaries, and next steps.
 
 ## My MCP Tools Page
 
@@ -73,6 +84,10 @@ the plugin marketplace.
 - `http://localhost:3000/mcp` is the MCP endpoint Codex uses.
 - `http://localhost:3000/` is a browser page that shows the tools currently
   exposed by that same MCP server.
+- after deployment, the public My MCP Tools URL is
+  `http://34.38.34.157/tools/PARTICIPANT_ID/`.
+- after deployment, the public MCP URL is
+  `http://34.38.34.157/mcp/PARTICIPANT_ID`.
 - The page should display the MCP tool menu: tool names, descriptions, input
   schemas, and examples.
 - The plugin marketplace APIs are the backend ingredients that MCP tools can
@@ -93,13 +108,13 @@ participant's own Postgres database on the shared workshop VM.
 - Treat the database as workshop state, not production data.
 - Each participant gets a separate database named after their participant ID,
   such as `mcp_p01` for `p01`.
-- Use `npm run db:check` after deployment to verify the participant database can
-  create a table, write a row, and read it back.
+- For the engineer section, verify database behavior through code exposed by
+  the participant MCP server, such as a temporary tool or health/debug endpoint,
+  then deploy through `./deploy.sh PARTICIPANT_ID`.
 
 ## Common Commands
 
-In the commands below, replace `PARTICIPANT_ID` and `LOCAL_MCP_PORT` before
-running anything. For example, `p01` uses `LOCAL_MCP_PORT=3101`.
+In the commands below, replace `PARTICIPANT_ID` before running anything.
 
 Deploy the current repository to your participant container whenever you change
 the MCP server, its tools, or the My MCP Tools page:
@@ -114,48 +129,32 @@ For example:
 ./deploy.sh p01
 ```
 
-`deploy.sh` copies the code into the participant container, restarts the MCP
-server, tries to start the local SSH tunnel, and opens the My MCP Tools page when
-possible.
+`deploy.sh` uploads the code through the workshop deploy gateway, restarts the
+participant MCP server, and prints the My MCP Tools URL plus the Codex MCP URL.
+It does not require `gcloud`, SSH, or a local tunnel for the default workshop
+flow.
 
-Tail the remote MCP logs:
+If `deploy.sh` asks for a workshop deploy token, ask the participant to enter the
+facilitator-provided token. Do not commit the token. It may be cached locally in
+`.workshop-token`, which is ignored by git.
 
-```bash
-gcloud compute ssh spark-workshop-ai-connector \
-  --zone=europe-west1-b \
-  --project=vertex-playground-429621 \
-  --tunnel-through-iap \
-  --command='sudo docker exec spark-PARTICIPANT_ID tail -f /tmp/workshop-mcp.log'
-```
+Before running `./deploy.sh PARTICIPANT_ID`, check whether `.workshop-token`
+exists or `WORKSHOP_DEPLOY_TOKEN` is already set. If neither exists, ask the
+participant for the facilitator-provided workshop deploy token, write it to
+`.workshop-token`, run `chmod 600 .workshop-token` when possible, and then
+deploy.
 
-Open an SSH tunnel from the participant's computer to their MCP endpoint:
+After deployment, use:
 
-```bash
-gcloud compute ssh spark-workshop-ai-connector \
-  --zone=europe-west1-b \
-  --project=vertex-playground-429621 \
-  --tunnel-through-iap \
-  -- -N -L LOCAL_MCP_PORT:127.0.0.1:LOCAL_MCP_PORT
-```
-
-Use `3101` for `p01`, `3102` for `p02`, and so on.
-
-Usually, do not ask non-technical participants to run this raw tunnel command.
-Use `./deploy.sh PARTICIPANT_ID` first; only use the raw command if the script
-reports that the tunnel could not start automatically.
-
-After the tunnel is running:
-
-- My MCP Tools: `http://127.0.0.1:LOCAL_MCP_PORT/`
-- Codex MCP URL: `http://127.0.0.1:LOCAL_MCP_PORT/mcp`
+- My MCP Tools: `http://34.38.34.157/tools/PARTICIPANT_ID/`
+- Codex MCP URL: `http://34.38.34.157/mcp/PARTICIPANT_ID`
 
 ## Codex Working Rules
 
 - Before deploying, confirm `PARTICIPANT_ID` has been replaced with a real value.
 - If `PARTICIPANT_ID` is still `pXX`, prompt the user for their participant
   number before proceeding.
-- Substitute `PARTICIPANT_ID` and `LOCAL_MCP_PORT` in commands before running
-  them.
+- Substitute `PARTICIPANT_ID` in commands before running them.
 - Use `./deploy.sh PARTICIPANT_ID` whenever the user wants to deploy updates to
   their MCP server or the My MCP Tools page.
 - Do not deploy to another participant's ID.
@@ -164,5 +163,6 @@ After the tunnel is running:
   unrelated infrastructure.
 - After editing tools, deploy again and refresh the `My MCP Tools` viewer to see
   what the AI can currently use.
-- If deployment fails, inspect `/tmp/workshop-mcp.log` in the participant
-  container before guessing at fixes.
+- If deployment fails, report the gateway error clearly. Do not ask the
+  participant to configure `gcloud` or SSH. Ask the facilitator for VM-side logs
+  only if the gateway error says the remote container failed to start.

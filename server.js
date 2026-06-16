@@ -51,35 +51,6 @@ const mcpTools = [
     },
     exampleRequest: "Show me the details for support-triage.",
     connectsTo: "Plugin Marketplace"
-  },
-  {
-    name: "recommend_plugins",
-    title: "Recommend plugins",
-    description: "Recommend marketplace plugins for a natural-language task.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        task_description: {
-          type: "string",
-          description: "A short description of what the user wants to do."
-        },
-        category: {
-          type: "string",
-          description: "Optional category to prefer."
-        },
-        team: {
-          type: "string",
-          description: "Optional team or owner to prefer."
-        },
-        limit: {
-          type: "number",
-          description: "Maximum number of recommendations to return."
-        }
-      },
-      additionalProperties: false
-    },
-    exampleRequest: "Which plugins should I use to understand metric changes?",
-    connectsTo: "Plugin Marketplace"
   }
 ];
 
@@ -547,7 +518,7 @@ function renderToolsPage() {
       elements.serverStatus.textContent = "Checking";
 
       try {
-        const response = await fetch("/api/tools", { cache: "no-store" });
+        const response = await fetch("api/tools", { cache: "no-store" });
         if (!response.ok) {
           throw new Error("Request failed: " + response.status);
         }
@@ -570,7 +541,8 @@ function renderToolsPage() {
       elements.checkedAt.textContent = data.checkedAt
         ? new Date(data.checkedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : "-";
-      elements.endpoint.textContent = data.endpoint || "/mcp";
+      const proxiedParticipant = window.location.pathname.match(/^\/tools\/(p[0-9]{2})(?:\/|$)/);
+      elements.endpoint.textContent = proxiedParticipant ? \`/mcp/\${proxiedParticipant[1]}\` : (data.endpoint || "/mcp");
       elements.rawJson.textContent = JSON.stringify(data, null, 2);
       elements.empty.hidden = tools.length > 0;
       elements.tools.innerHTML = tools.map(renderToolCard).join("");

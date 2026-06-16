@@ -5,18 +5,13 @@ usage() {
   cat <<'EOF'
 Usage: ./deploy.sh p01 [source-dir]
 
-Syncs a local MCP service into the participant's remote workshop container and
-starts it there.
+Uploads this MCP server to the workshop deploy gateway and restarts the
+participant's remote MCP server.
 
 Environment overrides:
-  WORKSHOP_VM=spark-workshop-ai-connector
-  WORKSHOP_ZONE=europe-west1-b
-  WORKSHOP_PROJECT=vertex-playground-429621
-  WORKSHOP_START_COMMAND='npm run dev'
-  WORKSHOP_INSTALL_COMMAND='npm install'
-  WORKSHOP_LOCAL_MCP_PORT=3101
-  WORKSHOP_SKIP_TUNNEL=0
-  WORKSHOP_OPEN_BROWSER=1
+  WORKSHOP_DEPLOY_GATEWAY_URL=http://34.38.34.157/_gateway/deploy
+  WORKSHOP_DEPLOY_TOKEN=...
+  WORKSHOP_TOKEN_FILE=.workshop-token
 EOF
 }
 
@@ -29,7 +24,7 @@ if [[ -z "${participant_id}" || "${participant_id}" == "-h" || "${participant_id
 fi
 
 if [[ ! "${participant_id}" =~ ^p[0-9]{2}$ ]]; then
-  echo "Participant id must look like p01, p02, ... p20" >&2
+  echo "Participant id must look like p01, p02, ... p21" >&2
   exit 1
 fi
 
@@ -38,109 +33,99 @@ if [[ ! -d "${source_dir}" ]]; then
   exit 1
 fi
 
-number_part="${participant_id#p}"
-participant_num=$((10#${number_part}))
+gateway_url="${WORKSHOP_DEPLOY_GATEWAY_URL:-http://34.38.34.157/_gateway/deploy}"
+token_file="${WORKSHOP_TOKEN_FILE:-.workshop-token}"
+token="${WORKSHOP_DEPLOY_TOKEN:-}"
 
-vm="${WORKSHOP_VM:-spark-workshop-ai-connector}"
-zone="${WORKSHOP_ZONE:-europe-west1-b}"
-project="${WORKSHOP_PROJECT:-vertex-playground-429621}"
-start_command="${WORKSHOP_START_COMMAND:-npm run dev}"
-install_command="${WORKSHOP_INSTALL_COMMAND:-npm install}"
-local_mcp_port="${WORKSHOP_LOCAL_MCP_PORT:-$((3100 + participant_num))}"
-remote_workspace="/srv/workshop/participants/${participant_id}"
-tools_url="http://127.0.0.1:${local_mcp_port}/"
-mcp_url="http://127.0.0.1:${local_mcp_port}/mcp"
-health_url="http://127.0.0.1:${local_mcp_port}/_system/health"
-
-gcloud_args=(compute ssh "${vm}" --zone="${zone}" --tunnel-through-iap)
-if [[ -n "${project}" ]]; then
-  gcloud_args+=(--project="${project}")
+if [[ -z "${token}" && -f "${token_file}" ]]; then
+  token="$(tr -d '\r\n' < "${token_file}")"
 fi
 
-quote() {
-  printf "%q" "$1"
+if [[ -z "${token}" ]]; then
+  if [[ -t 0 ]]; then
+    read -r -s -p "Workshop deploy token: " token
+    echo
+    if [[ -n "${token}" ]]; then
+      printf '%s\n' "${token}" > "${token_file}"
+      chmod 600 "${token_file}" 2>/dev/null || true
+      echo "Saved token to ${token_file}"
+    fi
+  else
+    echo "Missing workshop deploy token. Set WORKSHOP_DEPLOY_TOKEN or create ${token_file}." >&2
+    exit 1
+  fi
+fi
+
+if [[ -z "${token}" ]]; then
+  echo "Workshop deploy token cannot be empty." >&2
+  exit 1
+fi
+
+archive="$(mktemp "${TMPDIR:-/tmp}/spark-mcp-upload.XXXXXX.tar.gz")"
+response_file="$(mktemp "${TMPDIR:-/tmp}/spark-mcp-deploy-response.XXXXXX.json")"
+cleanup() {
+  rm -f "${archive}" "${response_file}"
 }
+trap cleanup EXIT
 
-remote_workspace_q="$(quote "${remote_workspace}")"
-participant_id_q="$(quote "${participant_id}")"
-start_command_q="$(quote "${start_command}")"
-install_command_q="$(quote "${install_command}")"
-
-remote_command="
-set -euo pipefail
-sudo mkdir -p ${remote_workspace_q}
-sudo find ${remote_workspace_q} -mindepth 1 -maxdepth 1 ! -name node_modules -exec rm -rf -- {} +
-sudo tar -xzf - -C ${remote_workspace_q} --no-same-owner
-sudo chown -R 1001:1001 ${remote_workspace_q}
-sudo WORKSHOP_START_COMMAND=${start_command_q} WORKSHOP_INSTALL_COMMAND=${install_command_q} /usr/local/bin/workshop-restart-mcp ${participant_id_q}
-"
-
-echo "Deploying ${source_dir} to ${vm}:${remote_workspace}"
-
+echo "Creating upload archive from ${source_dir}..."
 (
   cd "${source_dir}"
-  COPYFILE_DISABLE=1 tar --no-xattrs -czf - \
+  COPYFILE_DISABLE=1 tar --no-xattrs -czf "${archive}" \
     --exclude='.git' \
     --exclude='.DS_Store' \
     --exclude='.env' \
     --exclude='.env.*' \
+    --exclude='.workshop-token' \
     --exclude='node_modules' \
     --exclude='.next' \
     --exclude='coverage' \
     --exclude='.turbo' \
     .
-) | gcloud "${gcloud_args[@]}" --command="${remote_command}"
+)
 
-tunnel_status="Skipped"
-if [[ "${WORKSHOP_SKIP_TUNNEL:-0}" != "1" ]]; then
-  if curl -fsS --max-time 2 "${health_url}" >/dev/null 2>&1; then
-    tunnel_status="Already running on ${local_mcp_port}"
-  else
-    echo "Starting local tunnel for ${participant_id} on port ${local_mcp_port}..."
-    if gcloud "${gcloud_args[@]}" -- -f -N -o ExitOnForwardFailure=yes -L "${local_mcp_port}:127.0.0.1:${local_mcp_port}"; then
-      tunnel_status="Started on ${local_mcp_port}"
+echo "Uploading ${participant_id} to the workshop deploy gateway..."
+http_status="$(
+  curl -sS \
+    -o "${response_file}" \
+    -w "%{http_code}" \
+    -X POST \
+    -H "content-type: application/gzip" \
+    -H "x-participant-id: ${participant_id}" \
+    -H "x-workshop-token: ${token}" \
+    --data-binary "@${archive}" \
+    "${gateway_url}" || true
+)"
 
-      for _ in 1 2 3 4 5; do
-        if curl -fsS --max-time 2 "${health_url}" >/dev/null 2>&1; then
-          break
-        fi
-        sleep 1
-      done
-    else
-      tunnel_status="Could not start automatically"
-    fi
-  fi
-
-  if [[ "${WORKSHOP_OPEN_BROWSER:-1}" != "0" ]] \
-    && command -v open >/dev/null 2>&1 \
-    && curl -fsS --max-time 2 "${health_url}" >/dev/null 2>&1; then
-    open "${tools_url}"
-  fi
+if [[ ! "${http_status}" =~ ^2 ]]; then
+  echo "Deploy failed with HTTP ${http_status}." >&2
+  node - "${response_file}" <<'NODE' >&2 || cat "${response_file}" >&2
+const fs = await import("node:fs");
+const file = process.argv[2];
+const body = JSON.parse(fs.readFileSync(file, "utf8"));
+console.error(body.message || JSON.stringify(body, null, 2));
+if (body.details) console.error(body.details);
+NODE
+  exit 1
 fi
 
-cat <<EOF
+node - "${response_file}" <<'NODE'
+const fs = await import("node:fs");
+const file = process.argv[2];
+const body = JSON.parse(fs.readFileSync(file, "utf8"));
 
-Deployed ${participant_id}.
-
-Tunnel: ${tunnel_status}
-
-My MCP Tools:
-
-  ${tools_url}
-
-Codex MCP URL:
-
-  ${mcp_url}
-
-If the tunnel did not start, open a separate terminal and keep this running:
-
-  gcloud compute ssh ${vm} --zone=${zone}${project:+ --project=${project}} --tunnel-through-iap -- -N -L ${local_mcp_port}:127.0.0.1:${local_mcp_port}
-
-To deploy without starting the tunnel, run:
-
-  WORKSHOP_SKIP_TUNNEL=1 ./deploy.sh ${participant_id}
-
-Remote logs:
-
-  gcloud compute ssh ${vm} --zone=${zone}${project:+ --project=${project}} --tunnel-through-iap --command='sudo docker exec spark-${participant_id} tail -f /tmp/workshop-mcp.log'
-EOF
+console.log("");
+console.log(`Deployed ${body.participantId}.`);
+console.log("");
+console.log("My MCP Tools:");
+console.log("");
+console.log(`  ${body.myMcpToolsUrl}`);
+console.log("");
+console.log("Codex MCP URL:");
+console.log("");
+console.log(`  ${body.mcpUrl}`);
+console.log("");
+console.log("Health:");
+console.log("");
+console.log(`  ${JSON.stringify(body.health ?? { ok: true })}`);
+NODE
